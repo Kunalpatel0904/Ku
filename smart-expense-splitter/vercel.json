@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm run build && npx prisma generate && npx prisma migrate deploy",
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "framework": "nextjs",
+  "crons": []
+}

@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  groups        GroupMember[]
+  expensesPaid  Expense[]      @relation("PaidBy")
+  participants Participant[]
+
+  @@map("users")
+}
+
+model Group {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   GroupMember[]
+  expenses  Expense[]
+  balances  Balance[]
+  settlement Settlement[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id      String @id @default(cuid())
+  groupId String
+  userId  String
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("group_members")
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  groupId     String
+  paidByUserId String
+  description String
+  amount      Float
+  category    String   @default("Other")
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  group        Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidBy       User          @relation("PaidBy", fields: [paidByUserId], references: [id], onDelete: Cascade)
+  participants Participant[]
+
+  @@map("expenses")
+}
+
+model Participant {
+  id        String @id @default(cuid())
+  expenseId String
+  userId    String
+  amount    Float  @default(0)
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+  @@map("participants")
+}
+
+model Balance {
+  id            String   @id @default(cuid())
+  groupId       String
+  debtorId      String
+  creditorId    String
+  amount        Float
+  lastUpdated   DateTime @default(now()) @updatedAt
+
+  group     Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, debtorId, creditorId])
+  @@map("balances")
+}
+
+model Settlement {
+  id         String   @id @default(cuid())
+  groupId    String
+  debtorId   String
+  creditorId String
+  amount     Float
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@map("settlements")
+}
