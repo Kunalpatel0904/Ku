@@ -1,19 +1,24 @@
-const { PrismaClient } = require('@prisma/client');
+#!/usr/bin/env node
+const { execSync } = require('child_process');
+const path = require('path');
 
-const prisma = new PrismaClient();
-
-async function initDb() {
+async function initializeDatabase() {
   try {
-    console.log('Initializing database schema...');
-    // Test connection
-    await prisma.$queryRaw`SELECT 1`;
-    console.log('Database schema initialized successfully');
+    console.log('🔧 Initializing database schema...');
+
+    // Run prisma db push to create/update schema
+    console.log('Running: npx prisma db push --skip-generate');
+    execSync('npx prisma db push --skip-generate', {
+      stdio: 'inherit',
+      cwd: process.cwd()
+    });
+
+    console.log('✅ Database schema initialized successfully');
   } catch (error) {
-    console.error('Database initialization error:', error);
-    // Continue anyway, schema will be created on demand
-  } finally {
-    await prisma.$disconnect();
+    console.warn('⚠️  Database initialization warning:', error.message);
+    console.log('Continuing anyway...');
+    // Don't exit, just continue
   }
 }
 
-initDb();
+initializeDatabase();
