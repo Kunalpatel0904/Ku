@@ -10,4 +10,4 @@ RUN npm run build
 
 EXPOSE 3000
 
-CMD ["node_modules/.bin/next", "start"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate && node_modules/.bin/next start"]
