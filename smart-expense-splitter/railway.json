@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "nixpacks",
+    "buildCommand": "cd smart-expense-splitter && npm install && npm run build"
+  },
+  "deploy": {
+    "startCommand": "cd smart-expense-splitter && npm start"
+  }
+}
