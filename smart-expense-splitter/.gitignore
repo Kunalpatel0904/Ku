@@ -21,3 +21,6 @@ yarn-error.log*
 .env.local
 *.db
 node_modules/
+
+.vercel
+.env*.local

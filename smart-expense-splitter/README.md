@@ -109,7 +109,7 @@ Settlement
 
 ### Prerequisites
 - Node.js 18+ and npm/yarn
-- PostgreSQL 12+ (local or cloud)
+- SQLite (built-in) for local development, or PostgreSQL for production
 - Git
 
 ### Local Development Setup
@@ -129,37 +129,23 @@ Settlement
    ```bash
    cp .env.example .env.local
    ```
-   Edit `.env.local` and add your configuration:
+   For local development with SQLite (default):
    ```env
-   DATABASE_URL="postgresql://user:password@localhost:5432/expense_splitter"
-   NEXTAUTH_SECRET="your-secret-key"
-   HUGGING_FACE_API_KEY="your-hf-api-key"  # Optional
+   DATABASE_URL="file:./prisma/dev.db"
+   NEXTAUTH_SECRET="dev-secret-key-change-in-production"
+   HUGGING_FACE_API_KEY=""  # Optional for AI categorization
    ```
 
-4. **Setup PostgreSQL Database**
-   ```bash
-   # Using Docker (recommended)
-   docker run --name expense_db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=expense_splitter -p 5432:5432 -d postgres:15
-
-   # Or use local PostgreSQL installation
-   createdb expense_splitter
-   ```
-
-5. **Run Prisma migrations**
+4. **Run Prisma migrations** (automatic with SQLite)
    ```bash
    npx prisma migrate dev --name init
    ```
 
-6. **Start development server**
+5. **Start development server**
    ```bash
    npm run dev
    ```
    Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-7. **(Optional) View database with Prisma Studio**
-   ```bash
-   npx prisma studio
-   ```
 
 ## 📦 Building for Production
 
@@ -172,21 +158,41 @@ npm start
 
 ### Option 1: Vercel (Recommended)
 
-1. **Push code to GitHub**
+**Local SQLite → Vercel with PostgreSQL:**
+
+1. **Setup PostgreSQL Database**
+   - Create a free PostgreSQL database on [Supabase](https://supabase.com) or [Railway](https://railway.app)
+   - Copy the `DATABASE_URL` connection string
+
+2. **Update Prisma Schema for Production** (when deploying)
+   - Change `provider` in `prisma/schema.prisma` from `sqlite` to `postgresql`:
+   ```prisma
+   datasource db {
+     provider = "postgresql"
+     url      = env("DATABASE_URL")
+   }
+   ```
+
+3. **Push code to GitHub**
    ```bash
    git push origin main
    ```
 
-2. **Connect to Vercel**
+4. **Connect to Vercel**
    - Go to [vercel.com](https://vercel.com)
    - Click "New Project" and import your GitHub repository
-   - Set environment variables in project settings
+   - In project settings, add environment variables:
+     - `DATABASE_URL`: Your PostgreSQL connection string from Supabase/Railway
+     - `NEXTAUTH_SECRET`: Generate a secret key
+     - `HUGGING_FACE_API_KEY`: Optional
    - Deploy!
 
-3. **Setup Production Database**
-   - Use Railway, Supabase, or AWS RDS for PostgreSQL
-   - Update `DATABASE_URL` in Vercel environment variables
-   - Run migrations: `npx prisma migrate deploy`
+5. **Run Migrations on Vercel**
+   ```bash
+   # From your local machine with Vercel CLI installed
+   vercel env pull
+   npx prisma migrate deploy
+   ```
 
 ### Option 2: Railway
 
